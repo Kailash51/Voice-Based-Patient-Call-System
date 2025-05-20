@@ -88,7 +88,7 @@ const ChatScreen: React.FC = () => {
         setIsLoading(true);
         try {
           const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+            `{API_KEY}`,
             {
               contents: [{ parts: [{ text: input }] }]
             }

@@ -13,6 +13,8 @@ import { MyPatientsScreen } from '@/screens/nurse/MyPatientsScreen';
 import { ScheduleScreen } from '@/screens/nurse/ScheduleScreen';
 import { NurseProfileScreen } from '@/screens/nurse/NurseProfileScreen';
 import { NavigationBar } from '@/components/NavigationBar';
+import { ReferenceScreen } from '@/screens/nurse/ReferenceScreen';
+import { DoctorConnectScreen } from '@/screens/nurse/DoctorConnectScreen';
 
 // Initialize stack navigator
 const Stack = createStackNavigator();
@@ -64,6 +66,22 @@ export const NurseNavigator = () => {
       <Stack.Screen 
         name="NurseProfile" 
         component={NurseProfileScreen}
+      />
+      <Stack.Screen 
+        name="Reference" 
+        component={ReferenceScreen}
+        options={{
+          title: 'Reference Book',
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="DoctorConnect"
+        component={DoctorConnectScreen}
+        options={{
+          title: 'Connect Doctors',
+          headerShown: true,
+        }}
       />
     </Stack.Navigator>
   );

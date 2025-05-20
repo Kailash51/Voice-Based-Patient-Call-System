@@ -31,31 +31,32 @@ const createRequest = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 message: 'An active request already exists for this patient'
             });
         }
-        // Create request with AI-generated fields
+        // Generate AI fields first
+        let priority = 'medium';
+        let description = '';
+        try {
+            // Wait for both priority and description before creating request
+            [priority, description] = yield Promise.all([
+                (0, priorityService_1.getPriority)(disease),
+                (0, priorityService_1.generateDescription)(disease)
+            ]);
+            console.log('Generated AI fields:', { priority, description });
+            // Ensure priority is valid
+            if (!['low', 'medium', 'high', 'critical'].includes(priority)) {
+                priority = 'medium';
+            }
+        }
+        catch (aiError) {
+            console.error('Error generating AI fields:', aiError);
+            description = `Patient reported with ${disease}`;
+            priority = 'medium';
+        }
+        // Create request with all fields including AI-generated ones
         const request = yield Request_1.Request.create(Object.assign({ fullName,
             contactNumber,
             roomNumber,
             bedNumber,
-            disease, status: 'pending' }, (((_a = req.user) === null || _a === void 0 ? void 0 : _a._id) && { patient: req.user._id })));
-        // Generate AI fields asynchronously
-        try {
-            const [priority, description] = yield Promise.all([
-                (0, priorityService_1.getPriority)(disease),
-                (0, priorityService_1.generateDescription)(disease)
-            ]);
-            request.description = description;
-            // Ensure that priority is of the correct type
-            if (['low', 'medium', 'high', 'critical'].includes(priority)) {
-                request.priority = priority; // Ensure the priority type is valid
-            }
-            else {
-                request.priority = 'low'; // Default value if AI fails to provide a valid priority
-            }
-            yield request.save();
-        }
-        catch (aiError) {
-            console.error('Error generating AI fields:', aiError);
-        }
+            disease, status: 'pending', priority: priority, description }, (((_a = req.user) === null || _a === void 0 ? void 0 : _a._id) && { patient: req.user._id })));
         // Emit to nurses via socket
         server_1.socketService.emitToRole('nurse', 'newRequest', {
             requestId: request._id,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; // Importing React and useState hook for managing state
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,7 +6,7 @@ import {
   StatusBar,
   TouchableOpacity,
   Alert,
-} from 'react-native'; // Importing necessary components from react-native
+} from 'react-native';
 import {
   Text,
   Surface,
@@ -15,112 +15,104 @@ import {
   Button,
   Modal,
   ProgressBar,
-} from 'react-native-paper'; // Importing components from react-native-paper for UI elements
-import { LinearGradient } from 'expo-linear-gradient'; // Importing LinearGradient for background styling
-import { BlurView } from 'expo-blur'; // Importing BlurView for blurred background effect
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importing MaterialCommunityIcons for icons
+} from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Animated, { 
   FadeInDown, 
   useAnimatedStyle, 
   withSpring,
   withRepeat,
   withSequence,
-} from 'react-native-reanimated'; // Importing Animated components for animations
-import { useAuth } from '@/contexts/AuthContext'; // Importing authentication context
-import { requestApi } from '@/services/api'; // Importing API service for requests
-import Toast from 'react-native-toast-message'; // Importing Toast for notifications
+} from 'react-native-reanimated';
+import { useAuth } from '@/contexts/AuthContext';
+import { requestApi } from '@/services/api';
+import Toast from 'react-native-toast-message';
 
-// EmergencyScreen component definition
 export const EmergencyScreen: React.FC = () => {
-  // State variables for managing emergency status and UI
-  const [emergencyActive, setEmergencyActive] = useState(false); // Tracks if emergency is active
-  const [helpOnWay, setHelpOnWay] = useState(false); // Tracks if help is on the way
-  const [confirmationVisible, setConfirmationVisible] = useState(false); // Controls visibility of confirmation modal
-  const [estimatedTime, setEstimatedTime] = useState(0); // Estimated time for help arrival
-  const theme = useTheme(); // Accessing theme for styling
-  const { user } = useAuth(); // Getting user information from authentication context
+  const [emergencyActive, setEmergencyActive] = useState(false);
+  const [helpOnWay, setHelpOnWay] = useState(false);
+  const [confirmationVisible, setConfirmationVisible] = useState(false);
+  const [estimatedTime, setEstimatedTime] = useState(0);
+  const theme = useTheme();
+  const { user } = useAuth();
 
-  // Animated style for the emergency button's pulsing effect
   const pulseStyle = useAnimatedStyle(() => {
-    if (!emergencyActive) return {}; // Return empty style if not active
+    if (!emergencyActive) return {};
     return {
       transform: [
         {
           scale: withRepeat(
             withSequence(
-              withSpring(1.2), // Scale up
-              withSpring(1) // Scale down
+              withSpring(1.2),
+              withSpring(1)
             ),
-            -1, // Repeat indefinitely
-            true // Reverse the animation
+            -1,
+            true
           ),
         },
       ],
     };
   });
 
-  // Function to handle emergency button press
   const handleEmergency = () => {
-    setConfirmationVisible(true); // Show confirmation modal
+    setConfirmationVisible(true);
   };
 
-  // Function to confirm the emergency alert
   const confirmEmergency = async () => {
     try {
-      setConfirmationVisible(false); // Hide confirmation modal
-      setEmergencyActive(true); // Set emergency as active
-      setEstimatedTime(3); // Mock estimated time in minutes
+      setConfirmationVisible(false);
+      setEmergencyActive(true);
+      setEstimatedTime(3);
 
-      // Sending emergency request to the API
       const response = await requestApi.createEmergencyRequest({
-        patientId: user?.id, // Patient ID from user context
-        priority: 'high', // Setting priority to high
-        description: 'Emergency alert triggered', // Description of the alert
-        department: 'Emergency', // Department handling the emergency
+        patientId: user?.id,
+        priority: 'high',
+        description: 'Emergency alert triggered',
+        department: 'Emergency',
       });
 
-      // Check if the response indicates success
       if (response.success) {
-        setHelpOnWay(true); // Indicate that help is on the way
+        setHelpOnWay(true);
         Toast.show({
-          type: 'success', // Type of toast notification
-          text1: 'Emergency Alert Sent', // Main message
-          text2: 'Help is on the way!', // Additional message
-          position: 'top', // Position of the toast
-          topOffset: 60, // Offset from the top
+          type: 'success',
+          text1: 'Emergency Alert Sent',
+          text2: 'Help is on the way!',
+          position: 'top',
+          topOffset: 60,
         });
       } else {
-        throw new Error('Failed to create emergency request'); // Throw error if request fails
+        throw new Error('Failed to create emergency request');
       }
     } catch (error) {
-      console.error('Emergency request error:', error); // Log error
-      setEmergencyActive(false); // Reset emergency active state
+      console.error('Emergency request error:', error);
+      setEmergencyActive(false);
       Alert.alert(
-        'Error', // Alert title
-        'Failed to send emergency alert. Please try again or contact the front desk.', // Alert message
-        [{ text: 'OK' }] // Alert button
+        'Error',
+        'Failed to send emergency alert. Please try again or contact the front desk.',
+        [{ text: 'OK' }]
       );
     }
   };
 
-  // Function to cancel the emergency alert
   const cancelEmergency = () => {
     Alert.alert(
-      'Cancel Emergency', // Alert title
-      'Are you sure you want to cancel the emergency alert?', // Alert message
+      'Cancel Emergency',
+      'Are you sure you want to cancel the emergency alert?',
       [
-        { text: 'No', style: 'cancel' }, // Cancel button
+        { text: 'No', style: 'cancel' },
         {
-          text: 'Yes', // Confirm button
-          style: 'destructive', // Destructive style
+          text: 'Yes',
+          style: 'destructive',
           onPress: () => {
-            setEmergencyActive(false); // Reset emergency active state
-            setHelpOnWay(false); // Reset help on the way state
+            setEmergencyActive(false);
+            setHelpOnWay(false);
             Toast.show({
-              type: 'info', // Type of toast notification
-              text1: 'Emergency Alert Cancelled', // Main message
-              position: 'top', // Position of the toast
-              topOffset: 60, // Offset from the top
+              type: 'info',
+              text1: 'Emergency Alert Cancelled',
+              position: 'top',
+              topOffset: 60,
             });
           },
         },
@@ -128,84 +120,81 @@ export const EmergencyScreen: React.FC = () => {
     );
   };
 
-  // Emergency button component
   const EmergencyButton = () => (
     <Animated.View style={[styles.emergencyButtonContainer, pulseStyle]}>
       <TouchableOpacity
         style={[
-          styles.emergencyButton, // Base button style
-          emergencyActive && styles.emergencyButtonActive, // Active button style
+          styles.emergencyButton,
+          emergencyActive && styles.emergencyButtonActive,
         ]}
-        onPress={handleEmergency} // Handle button press
-        disabled={emergencyActive} // Disable button if emergency is active
+        onPress={handleEmergency}
+        disabled={emergencyActive}
       >
         <Icon
-          name="alert-octagon" // Icon for emergency button
-          size={64} // Icon size
-          color={emergencyActive ? '#fff' : '#f44336'} // Icon color based on state
+          name="alert-octagon"
+          size={64}
+          color={emergencyActive ? '#fff' : '#f44336'}
         />
         <Text style={[
-          styles.emergencyButtonText, // Base text style
-          emergencyActive && styles.emergencyButtonTextActive, // Active text style
+          styles.emergencyButtonText,
+          emergencyActive && styles.emergencyButtonTextActive,
         ]}>
-          {emergencyActive ? 'EMERGENCY ACTIVE' : 'PRESS FOR EMERGENCY'} // Button text based on state
+          {emergencyActive ? 'EMERGENCY ACTIVE' : 'PRESS FOR EMERGENCY'}
         </Text>
       </TouchableOpacity>
     </Animated.View>
   );
 
-  // Quick actions component for additional options
   const QuickActions = () => (
     <View style={styles.quickActions}>
       <Surface style={styles.actionCard}>
         <TouchableOpacity style={styles.actionButton}>
-          <Icon name="phone" size={32} color={theme.colors.primary} /> // Call Nurse action
+          <Icon name="phone" size={32} color={theme.colors.primary} />
           <Text style={styles.actionText}>Call Nurse</Text>
         </TouchableOpacity>
       </Surface>
 
       <Surface style={styles.actionCard}>
         <TouchableOpacity style={styles.actionButton}>
-          <Icon name="medical-bag" size={32} color={theme.colors.primary} /> // Medical Help action
+          <Icon name="medical-bag" size={32} color={theme.colors.primary} />
           <Text style={styles.actionText}>Medical Help</Text>
         </TouchableOpacity>
       </Surface>
 
       <Surface style={styles.actionCard}>
         <TouchableOpacity style={styles.actionButton}>
-          <Icon name="pill" size={32} color={theme.colors.primary} /> // Medicine action
+          <Icon name="pill" size={32} color={theme.colors.primary} />
           <Text style={styles.actionText}>Medicine</Text>
         </TouchableOpacity>
       </Surface>
 
       <Surface style={styles.actionCard}>
         <TouchableOpacity style={styles.actionButton}>
-          <Icon name="doctor" size={32} color={theme.colors.primary} /> // Assistance action
+          <Icon name="doctor" size={32} color={theme.colors.primary} />
           <Text style={styles.actionText}>Assistance</Text>
         </TouchableOpacity>
       </Surface>
     </View>
   );
 
-  // Main render function
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" /> // Set status bar style
+      <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={emergencyActive ? ['#f44336', '#d32f2f'] : ['#2C6EAB', '#3b5998', '#192f6a']} // Gradient colors based on emergency state
+        colors={emergencyActive ? ['#f44336', '#d32f2f'] : ['#2C6EAB', '#3b5998', '#192f6a']}
         style={styles.header}
-        start={{ x: 0, y: 0 }} // Start point for gradient
-        end={{ x: 1, y: 1 }} // End point for gradient
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <BlurView intensity={20} style={styles.headerBlur}> // Blur effect for header
+        <BlurView intensity={20} style={styles.headerBlur}>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Emergency</Text> // Header title
-            {emergencyActive && ( // Show close button if emergency is active
+            <Text style={styles.headerTitle}>Emergency</Text>
+            {emergencyActive && (
               <IconButton
-                icon="close" // Close icon
-                iconColor="#fff" // Icon color
-                size={24} // Icon size
-                onPress={cancelEmergency} // Handle cancel emergency
+                icon="close"
+                iconColor="#fff"
+                size={24}
+                onPress={cancelEmergency}
                 style={styles.headerButton}
               />
             )}
@@ -214,213 +203,212 @@ export const EmergencyScreen: React.FC = () => {
       </LinearGradient>
 
       <ScrollView style={styles.content}>
-        <Animated.View entering={FadeInDown}> // Animated view for status display
-          {emergencyActive ? ( // Check if emergency is active
+        <Animated.View entering={FadeInDown}>
+          {emergencyActive ? (
             <Surface style={styles.statusCard}>
               <View style={styles.statusHeader}>
-                <Icon name="alert-circle" size={32} color="#f44336" /> // Alert icon
-                <Text style={styles.statusTitle}>Emergency Alert Active</Text> // Status title
+                <Icon name="alert-circle" size={32} color="#f44336" />
+                <Text style={styles.statusTitle}>Emergency Alert Active</Text>
               </View>
               
-              {helpOnWay && ( // Show help status if help is on the way
+              {helpOnWay && (
                 <React.Fragment>
-                  <Text style={styles.statusText}>Help is on the way!</Text> // Help status message
+                  <Text style={styles.statusText}>Help is on the way!</Text>
                   <View style={styles.estimatedTime}>
                     <Text style={styles.estimatedTimeText}>
-                      Estimated arrival in {estimatedTime} minutes // Estimated time message
+                      Estimated arrival in {estimatedTime} minutes
                     </Text>
                     <ProgressBar
-                      progress={0.3} // Progress bar value
-                      color={theme.colors.primary} // Progress bar color
-                      style={styles.progressBar} // Progress bar style
+                      progress={0.3}
+                      color={theme.colors.primary}
+                      style={styles.progressBar}
                     />
                   </View>
                 </React.Fragment>
               )}
             </Surface>
           ) : (
-            <EmergencyButton /> // Render emergency button if not active
+            <EmergencyButton />
           )}
 
-          <QuickActions /> // Render quick actions
+          <QuickActions />
         </Animated.View>
       </ScrollView>
 
       <Modal
-        visible={confirmationVisible} // Modal visibility based on state
-        onDismiss={() => setConfirmationVisible(false)} // Handle modal dismiss
-        contentContainerStyle={styles.modalContainer} // Modal container style
+        visible={confirmationVisible}
+        onDismiss={() => setConfirmationVisible(false)}
+        contentContainerStyle={styles.modalContainer}
       >
         <View style={styles.modalContent}>
-          <Icon name="alert" size={48} color="#f44336" /> // Alert icon in modal
-          <Text style={styles.modalTitle}>Confirm Emergency</Text> // Modal title
+          <Icon name="alert" size={48} color="#f44336" />
+          <Text style={styles.modalTitle}>Confirm Emergency</Text>
           <Text style={styles.modalText}>
-            Are you sure you want to trigger an emergency alert? // Modal message
+            Are you sure you want to trigger an emergency alert?
           </Text>
           <View style={styles.modalButtons}>
             <Button
-              mode="outlined" // Button mode
-              onPress={() => setConfirmationVisible(false)} // Handle cancel
+              mode="outlined"
+              onPress={() => setConfirmationVisible(false)}
               style={styles.modalButton}
             >
-              Cancel // Cancel button text
+              Cancel
             </Button>
             <Button
-              mode="contained" // Button mode
-              onPress={confirmEmergency} // Handle confirm
-              style={[styles.modalButton, styles.confirmButton]} // Button styles
-              buttonColor="#f44336" // Button color
+              mode="contained"
+              onPress={confirmEmergency}
+              style={[styles.modalButton, styles.confirmButton]}
+              buttonColor="#f44336"
             >
-              Confirm // Confirm button text
+              Confirm
             </Button>
           </View>
         </View>
       </Modal>
-      <Toast /> // Toast notification component
+      <Toast />
     </View>
   );
 };
 
-// Styles for the EmergencyScreen component
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Full height
-    backgroundColor: '#f8f9fa', // Background color
+    flex: 1,
+    backgroundColor: '#f8f9fa',
   },
   header: {
-    height: 120, // Header height
-    justifyContent: 'flex-end', // Align content to the bottom
+    height: 120,
+    justifyContent: 'flex-end',
   },
   headerBlur: {
-    padding: 16, // Padding for header
+    padding: 16,
   },
   headerContent: {
-    flexDirection: 'row', // Row layout for header content
-    justifyContent: 'space-between', // Space between header items
-    alignItems: 'center', // Center items vertically
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 28, // Header title font size
-    fontWeight: 'bold', // Header title font weight
-    color: '#fff', // Header title color
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   headerButton: {
-    margin: 0, // No margin for header button
+    margin: 0,
   },
   content: {
-    flex: 1, // Full height for content
-    padding: 16, // Padding for content
+    flex: 1,
+    padding: 16,
   },
   emergencyButtonContainer: {
-    alignItems: 'center', // Center align emergency button
-    marginVertical: 24, // Vertical margin
+    alignItems: 'center',
+    marginVertical: 24,
   },
   emergencyButton: {
-    width: 200, // Button width
-    height: 200, // Button height
-    borderRadius: 100, // Circular button
-    backgroundColor: '#fff', // Button background color
-    justifyContent: 'center', // Center content
-    alignItems: 'center', // Center content
-    elevation: 4, // Elevation for shadow
-    shadowColor: '#000', // Shadow color
-    shadowOffset: { width: 0, height: 2 }, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   emergencyButtonActive: {
-    backgroundColor: '#f44336', // Active button background color
+    backgroundColor: '#f44336',
   },
   emergencyButtonText: {
-    marginTop: 8, // Margin above text
-    fontSize: 16, // Text font size
-    fontWeight: 'bold', // Text font weight
-    color: '#f44336', // Text color
-    textAlign: 'center', // Center text
+    marginTop: 8,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#f44336',
+    textAlign: 'center',
   },
   emergencyButtonTextActive: {
-    color: '#fff', // Active text color
+    color: '#fff',
   },
   quickActions: {
-    flexDirection: 'row', // Row layout for quick actions
-    flexWrap: 'wrap', // Wrap actions to next line
-    justifyContent: 'space-between', // Space between actions
-    marginTop: 24, // Margin above quick actions
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 24,
   },
   actionCard: {
-    width: '48%', // Card width
-    marginBottom: 16, // Margin below card
-    borderRadius: 12, // Card border radius
-    elevation: 2, // Card elevation
+    width: '48%',
+    marginBottom: 16,
+    borderRadius: 12,
+    elevation: 2,
   },
   actionButton: {
-    padding: 16, // Padding for action button
-    alignItems: 'center', // Center align action button content
+    padding: 16,
+    alignItems: 'center',
   },
   actionText: {
-    marginTop: 8, // Margin above action text
-    fontSize: 14, // Action text font size
-    fontWeight: '500', // Action text font weight
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: '500',
   },
   statusCard: {
-    padding: 16, // Padding for status card
-    borderRadius: 12, // Status card border radius
-    marginVertical: 24, // Vertical margin for status card
-    elevation: 2, // Status card elevation
+    padding: 16,
+    borderRadius: 12,
+    marginVertical: 24,
+    elevation: 2,
   },
   statusHeader: {
-    flexDirection: 'row', // Row layout for status header
-    alignItems: 'center', // Center align status header items
-    marginBottom: 16, // Margin below status header
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   statusTitle: {
-    marginLeft: 12, // Margin left for status title
-    fontSize: 20, // Status title font size
-    fontWeight: 'bold', // Status title font weight
+    marginLeft: 12,
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   statusText: {
-    fontSize: 16, // Status text font size
-    marginBottom: 16, // Margin below status text
+    fontSize: 16,
+    marginBottom: 16,
   },
   estimatedTime: {
-    marginTop: 8, // Margin above estimated time
+    marginTop: 8,
   },
   estimatedTimeText: {
-    fontSize: 14, // Estimated time text font size
-    marginBottom: 8, // Margin below estimated time text
+    fontSize: 14,
+    marginBottom: 8,
   },
   progressBar: {
-    height: 8, // Progress bar height
-    borderRadius: 4, // Progress bar border radius
+    height: 8,
+    borderRadius: 4,
   },
   modalContainer: {
-    backgroundColor: '#fff', // Modal background color
-    margin: 20, // Margin for modal
-    borderRadius: 12, // Modal border radius
-    padding: 20, // Padding for modal content
+    backgroundColor: '#fff',
+    margin: 20,
+    borderRadius: 12,
+    padding: 20,
   },
   modalContent: {
-    alignItems: 'center', // Center align modal content
+    alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 24, // Modal title font size
-    fontWeight: 'bold', // Modal title font weight
-    marginVertical: 16, // Vertical margin for modal title
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginVertical: 16,
   },
   modalText: {
-    fontSize: 16, // Modal text font size
-    textAlign: 'center', // Center align modal text
-    marginBottom: 24, // Margin below modal text
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
   },
   modalButtons: {
-    flexDirection: 'row', // Row layout for modal buttons
-    justifyContent: 'space-around', // Space around modal buttons
-    width: '100%', // Full width for modal buttons
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
   },
   modalButton: {
-    minWidth: 120, // Minimum width for modal buttons
+    minWidth: 120,
   },
   confirmButton: {
-    backgroundColor: '#f44336', // Confirm button background color
+    backgroundColor: '#f44336',
   },
 });

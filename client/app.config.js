@@ -30,5 +30,8 @@ export default {
   extra: {
     apiUrl: 'http://192.168.175.199:5000'  // Your actual IP address
   },
-  newArchEnabled: true
+  newArchEnabled: true,
+  plugins: [
+    "expo-secure-store" // Added the plugin here
+  ]
 };

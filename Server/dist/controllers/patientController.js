@@ -62,22 +62,17 @@ const registerPatient = (req, res) => __awaiter(void 0, void 0, void 0, function
 exports.registerPatient = registerPatient;
 const getPatients = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const patients = yield User_1.User.find({ role: 'patient' })
-            .select('-password')
-            .populate({
-            path: 'patient',
-            select: 'medicalHistory emergencyContact'
-        });
+        const patients = yield Patient_1.Patient.find({});
         res.json({
             success: true,
             data: patients
         });
     }
     catch (error) {
-        console.error('Error fetching patients:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to fetch patients'
+            message: 'Error fetching patients',
+            error: error.message
         });
     }
 });

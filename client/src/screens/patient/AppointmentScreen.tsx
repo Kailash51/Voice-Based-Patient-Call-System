@@ -1,4 +1,3 @@
-// Import necessary libraries and components
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -17,81 +16,69 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { format } from 'date-fns';
 import Toast from 'react-native-toast-message';
 
-// Define the structure of an Appointment object
 interface Appointment {
-  id: string; // Unique identifier for the appointment
-  date: string; // Date of the appointment
-  time: string; // Time of the appointment
-  department: string; // Department for the appointment
-  status: string; // Status of the appointment (e.g., confirmed, pending, cancelled)
-  doctorName: string; // Name of the doctor for the appointment
-  type: string; // Type of appointment (e.g., consultation, follow-up)
+  id: string;
+  date: string;
+  time: string;
+  department: string;
+  status: string;
+  doctorName: string;
+  type: string;
 }
 
-// Main component for the Appointment Screen
 export const AppointmentScreen: React.FC = () => {
-  // State variables for appointments, loading status, and refreshing status
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
-  // Authentication context to get the current user
   const { user } = useAuth();
-  const theme = useTheme(); // Get the theme for styling
+  const theme = useTheme();
 
-  // Function to fetch appointments from the API
   const fetchAppointments = async () => {
     try {
-      // Check if user ID is available
       if (!user?.id) {
         console.error('No user ID available');
-        setAppointments([]); // Set appointments to an empty array if no user ID
+        setAppointments([]);
         return;
       }
-      // Fetch appointments using the appointment API
       const fetchedAppointments = await appointmentApi.fetchAppointments(user.id);
-      setAppointments(fetchedAppointments || []); // Update state with fetched appointments
+      setAppointments(fetchedAppointments || []);
     } catch (error) {
       console.error('Failed to fetch appointments:', error);
-      setAppointments([]); // Set appointments to an empty array on error
-      // Show error message using Toast
+      setAppointments([]);
       Toast.show({
         type: 'error',
         text1: 'Error',
         text2: 'Failed to fetch appointments'
       });
     } finally {
-      setLoading(false); // Set loading to false after fetching
+      setLoading(false);
     }
   };
 
-  // Function to handle refresh action
   const onRefresh = async () => {
-    setRefreshing(true); // Set refreshing to true
-    await fetchAppointments(); // Fetch appointments
-    setRefreshing(false); // Set refreshing to false after fetching
+    setRefreshing(true);
+    await fetchAppointments();
+    setRefreshing(false);
   };
 
-  // Effect to fetch appointments when the component mounts or user ID changes
   useEffect(() => {
-    fetchAppointments(); // Fetch appointments
+    fetchAppointments();
   }, [user?.id]);
 
-  // Function to get color based on appointment status
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'confirmed':
-        return ['#4CAF50', '#45B7AF']; // Green colors for confirmed status
+        return ['#4CAF50', '#45B7AF'];
       case 'pending':
-        return ['#FF9800', '#F57C00']; // Orange colors for pending status
+        return ['#FF9800', '#F57C00'];
       case 'cancelled':
-        return ['#F44336', '#D32F2F']; // Red colors for cancelled status
+        return ['#F44336', '#D32F2F'];
       default:
-        return ['#9E9E9E', '#757575']; // Grey colors for unknown status
+        return ['#9E9E9E', '#757575'];
     }
   };
 
-  // Show loading indicator while fetching appointments
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -100,24 +87,23 @@ export const AppointmentScreen: React.FC = () => {
     );
   }
 
-  // Render the main component
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" /> {/* Set status bar style */}
+      <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={['#2C6EAB', '#3b5998', '#192f6a']} // Gradient colors for header
+        colors={['#2C6EAB', '#3b5998', '#192f6a']}
         style={styles.header}
-        start={{ x: 0, y: 0 }} // Start point for gradient
-        end={{ x: 1, y: 1 }} // End point for gradient
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <BlurView intensity={20} style={styles.headerBlur}> {/* Blur effect for header */}
+        <BlurView intensity={20} style={styles.headerBlur}>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>My Appointments</Text> {/* Header title */}
+            <Text style={styles.headerTitle}>My Appointments</Text>
             <IconButton
-              icon="plus" // Icon for adding new appointment
-              iconColor="#fff" // Icon color
-              size={24} // Icon size
-              onPress={() => {/* Handle new appointment */}} // Handle new appointment action
+              icon="plus"
+              iconColor="#fff"
+              size={24}
+              onPress={() => {}}
               style={styles.headerButton}
             />
           </View>
@@ -125,79 +111,79 @@ export const AppointmentScreen: React.FC = () => {
       </LinearGradient>
 
       <ScrollView
-        style={styles.content} // Main content style
+        style={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} /> // Pull-to-refresh functionality
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />
         }
       >
-        {appointments.length === 0 ? ( // Check if there are no appointments
+        {appointments.length === 0 ? (
           <Surface style={styles.emptyContainer}>
-            <Icon name="calendar-blank" size={48} color={theme.colors.primary} /> {/* Icon for empty state */}
-            <Text style={styles.emptyText}>No upcoming appointments</Text> {/* Empty state text */}
+            <Icon name="calendar-blank" size={48} color={theme.colors.primary} />
+            <Text style={styles.emptyText}>No upcoming appointments</Text>
             <Text style={styles.emptySubtext}>
               Schedule a new appointment to get started
             </Text>
           </Surface>
         ) : (
-          appointments.map((appointment) => ( // Map through appointments to render each one
+          appointments.map((appointment) => (
             <Surface key={appointment.id} style={styles.appointmentCard}>
               <LinearGradient
-                colors={getStatusColor(appointment.status) as [string, string]} // Get colors based on appointment status
+                colors={getStatusColor(appointment.status) as [string, string]}
                 style={styles.statusBadge}
-                start={{ x: 0, y: 0 }} // Start point for gradient
-                end={{ x: 1, y: 1 }} // End point for gradient
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
               >
                 <Text style={styles.statusText}>
-                  {appointment.status.toUpperCase()} {/* Display appointment status */}
+                  {appointment.status.toUpperCase()}
                 </Text>
               </LinearGradient>
 
               <View style={styles.appointmentHeader}>
                 <View style={styles.appointmentType}>
                   <Icon
-                    name="stethoscope" // Icon for appointment type
+                    name="stethoscope"
                     size={24}
-                    color={theme.colors.primary} // Icon color
+                    color={theme.colors.primary}
                   />
-                  <Text style={styles.typeText}>{appointment.type}</Text> {/* Display appointment type */}
+                  <Text style={styles.typeText}>{appointment.type}</Text>
                 </View>
                 <Text style={styles.departmentText}>
-                  {appointment.department} {/* Display appointment department */}
+                  {appointment.department}
                 </Text>
               </View>
 
               <View style={styles.appointmentDetails}>
                 <View style={styles.detailRow}>
-                  <Icon name="calendar" size={20} color="#666" /> {/* Icon for date */}
+                  <Icon name="calendar" size={20} color="#666" />
                   <Text style={styles.detailText}>
-                    {format(new Date(appointment.date), 'MMMM dd, yyyy')} {/* Format and display appointment date */}
+                    {format(new Date(appointment.date), 'MMMM dd, yyyy')}
                   </Text>
                 </View>
                 <View style={styles.detailRow}>
-                  <Icon name="clock-outline" size={20} color="#666" /> {/* Icon for time */}
-                  <Text style={styles.detailText}>{appointment.time}</Text> {/* Display appointment time */}
+                  <Icon name="clock-outline" size={20} color="#666" />
+                  <Text style={styles.detailText}>{appointment.time}</Text>
                 </View>
                 <View style={styles.detailRow}>
-                  <Icon name="doctor" size={20} color="#666" /> {/* Icon for doctor */}
+                  <Icon name="doctor" size={20} color="#666" />
                   <Text style={styles.detailText}>
-                    Dr. {appointment.doctorName} {/* Display doctor's name */}
+                    Dr. {appointment.doctorName}
                   </Text>
                 </View>
               </View>
 
               <View style={styles.actionButtons}>
                 <IconButton
-                  icon="pencil" // Icon for edit action
+                  icon="pencil"
                   mode="contained"
                   size={20}
-                  onPress={() => {/* Handle edit */}} // Handle edit action
+                  onPress={() => {}}
                 />
                 <IconButton
-                  icon="cancel" // Icon for cancel action
+                  icon="cancel"
                   mode="contained"
                   size={20}
-                  onPress={() => {/* Handle cancel */}} // Handle cancel action
-                  containerColor={theme.colors.error} // Set container color to error color
+                  onPress={() => {}}
+                  containerColor={theme.colors.error}
                 />
               </View>
             </Surface>
@@ -208,113 +194,112 @@ export const AppointmentScreen: React.FC = () => {
   );
 }
 
-// Define styles for the component
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa', // Background color for the container
+    backgroundColor: '#f8f9fa',
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center', // Center loading indicator
-    alignItems: 'center', // Center loading indicator
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
-    paddingTop: 48, // Padding for header top
-    paddingBottom: 16, // Padding for header bottom
+    paddingTop: 48,
+    paddingBottom: 16,
   },
   headerBlur: {
-    padding: 16, // Padding for header blur view
+    padding: 16,
   },
   headerContent: {
-    flexDirection: 'row', // Arrange header content in a row
-    justifyContent: 'space-between', // Space between header title and button
-    alignItems: 'center', // Center items vertically
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 28, // Font size for header title
-    fontWeight: 'bold', // Bold font weight for header title
-    color: '#fff', // White color for header title
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   headerButton: {
-    backgroundColor: 'rgba(255,255,255,0.1)', // Semi-transparent background for header button
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   content: {
-    flex: 1, // Flex to fill available space
-    padding: 16, // Padding for content
+    flex: 1,
+    padding: 16,
   },
   emptyContainer: {
-    padding: 32, // Padding for empty state container
-    alignItems: 'center', // Center items in empty state
-    borderRadius: 16, // Rounded corners for empty state
-    marginTop: 32, // Margin top for empty state
+    padding: 32,
+    alignItems: 'center',
+    borderRadius: 16,
+    marginTop: 32,
   },
   emptyText: {
-    fontSize: 18, // Font size for empty state text
-    fontWeight: 'bold', // Bold font weight for empty state text
-    marginTop: 16, // Margin top for empty state text
-    color: '#333', // Dark color for empty state text
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 16,
+    color: '#333',
   },
   emptySubtext: {
-    fontSize: 14, // Font size for empty state subtext
-    color: '#666', // Grey color for empty state subtext
-    marginTop: 8, // Margin top for empty state subtext
+    fontSize: 14,
+    color: '#666',
+    marginTop: 8,
   },
   appointmentCard: {
-    borderRadius: 16, // Rounded corners for appointment card
-    marginBottom: 16, // Margin bottom for appointment card
-    overflow: 'hidden', // Hide overflow for rounded corners
-    elevation: 4, // Elevation for shadow effect
+    borderRadius: 16,
+    marginBottom: 16,
+    overflow: 'hidden',
+    elevation: 4,
   },
   statusBadge: {
-    paddingHorizontal: 12, // Horizontal padding for status badge
-    paddingVertical: 6, // Vertical padding for status badge
-    borderTopLeftRadius: 16, // Rounded corner for top left
-    borderBottomRightRadius: 16, // Rounded corner for bottom right
-    alignSelf: 'flex-start', // Align badge to the start
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderTopLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    alignSelf: 'flex-start',
   },
   statusText: {
-    color: '#fff', // White color for status text
-    fontWeight: 'bold', // Bold font weight for status text
-    fontSize: 12, // Font size for status text
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
   appointmentHeader: {
-    padding: 16, // Padding for appointment header
-    borderBottomWidth: 1, // Bottom border width
-    borderBottomColor: '#eee', // Bottom border color
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   appointmentType: {
-    flexDirection: 'row', // Arrange appointment type in a row
-    alignItems: 'center', // Center items vertically
-    marginBottom: 8, // Margin bottom for appointment type
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   typeText: {
-    fontSize: 18, // Font size for appointment type text
-    fontWeight: 'bold', // Bold font weight for appointment type text
-    marginLeft: 8, // Margin left for appointment type text
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
   departmentText: {
-    fontSize: 14, // Font size for department text
-    color: '#666', // Grey color for department text
+    fontSize: 14,
+    color: '#666',
   },
   appointmentDetails: {
-    padding: 16, // Padding for appointment details
+    padding: 16,
   },
   detailRow: {
-    flexDirection: 'row', // Arrange detail row in a row
-    alignItems: 'center', // Center items vertically
-    marginBottom: 12, // Margin bottom for detail row
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   detailText: {
-    marginLeft: 12, // Margin left for detail text
-    fontSize: 16, // Font size for detail text
-    color: '#333', // Dark color for detail text
+    marginLeft: 12,
+    fontSize: 16,
+    color: '#333',
   },
   actionButtons: {
-    flexDirection: 'row', // Arrange action buttons in a row
-    justifyContent: 'flex-end', // Align buttons to the end
-    padding: 8, // Padding for action buttons
-    borderTopWidth: 1, // Top border width for action buttons
-    borderTopColor: '#eee', // Top border color for action buttons
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
   },
 });

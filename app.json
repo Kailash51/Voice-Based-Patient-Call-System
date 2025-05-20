@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "d244a829-af62-4496-9d5f-e2ac27e14468"
+      }
+    },
+    "android": {
+      "package": "com.kailash51.patientcallsystem"
+    }
+  }
+}

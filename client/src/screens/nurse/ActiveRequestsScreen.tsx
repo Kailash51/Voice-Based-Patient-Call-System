@@ -31,16 +31,15 @@ export const ActiveRequestsScreen = () => {
     try {
       setRefreshing(true);
       const response = await requestService.getRequests();
-      console.log('Response:', response);
       
       // Filter out completed requests and sort by priority
       const activeRequests = response.data.requests.filter(
-        req => req.status !== 'completed'
+        (req: RequestResponse) => req.status !== 'completed'
       );
-      const criticalRequests = activeRequests.filter(req => req.priority === 'critical');
-      const highRequests = activeRequests.filter(req => req.priority === 'high');
-      const mediumRequests = activeRequests.filter(req => req.priority === 'medium');
-      const lowRequests = activeRequests.filter(req => req.priority === 'low');
+      const criticalRequests = activeRequests.filter((req: RequestResponse) => req.priority === 'critical');
+      const highRequests = activeRequests.filter((req: RequestResponse) => req.priority === 'high');
+      const mediumRequests = activeRequests.filter((req: RequestResponse) => req.priority === 'medium');
+      const lowRequests = activeRequests.filter((req: RequestResponse) => req.priority === 'low');
       setRequests([...criticalRequests, ...highRequests, ...mediumRequests, ...lowRequests]);
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -61,30 +60,33 @@ export const ActiveRequestsScreen = () => {
     fetchRequests();
 
     // Socket listener for new incoming requests
-    socket.on('newRequest', (request) => {
-      // Critical requests are added to the top, others to the bottom
-      if (request.priority === 'critical') {
-        setRequests(prev => [request, ...prev]);
-      } else {
-        setRequests(prev => [...prev, request]);
+    socket.on('newRequest', (request: RequestResponse) => {
+      if (request.status !== 'completed') {
+        if (request.priority === 'critical') {
+          setRequests(prev => [request, ...prev]);
+        } else {
+          setRequests(prev => [...prev, request]);
+        }
+        Toast.show({
+          type: 'info',
+          text1: 'New Request',
+          text2: `Priority: ${request.priority} - Patient: ${request.fullName}`,
+          position: 'top',
+          topOffset: 60,
+          visibilityTime: 6000,
+        });
       }
-      Toast.show({
-        type: 'info',
-        text1: 'New Request',
-        text2: `Priority: ${request.priority} - Patient: ${request.fullName}`,
-        position: 'top',
-        topOffset: 60,
-        visibilityTime: 6000,
-      });
     });
 
     // Socket listener for request status updates
-    socket.on('request_status_updated', (updatedRequest) => {
+    socket.on('request_status_updated', (updatedRequest: RequestResponse) => {
       if (updatedRequest.status === 'completed') {
-        setRequests(prev => prev.filter(req => req.id !== updatedRequest.id));
+        setRequests(prev => prev.filter(req => req._id !== updatedRequest._id));
+        // Emit event for completed requests screen
+        socket.emit('requestCompleted', updatedRequest);
       } else {
         setRequests(prev => prev.map(req => 
-          req.id === updatedRequest.id ? updatedRequest : req
+          req._id === updatedRequest._id ? updatedRequest : req
         ));
       }
     });
@@ -102,20 +104,28 @@ export const ActiveRequestsScreen = () => {
    */
   const handleComplete = async (requestId: string) => {
     try {
-      await requestService.updateRequestStatus(requestId, 'completed');
-      setRequests(prev => prev.filter(req => req.id !== requestId));
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: 'Request marked as completed',
-        position: 'top',
-        topOffset: 60,
-      });
-    } catch (error) {
+      const response = await requestService.updateRequestStatus(requestId, 'completed');
+      if (response.success) {
+        // Remove from active requests
+        setRequests(prev => prev.filter(req => req._id !== requestId));
+        
+        // Emit socket event for completed requests screen
+        socket.emit('requestCompleted', response.data);
+        
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Request marked as completed',
+          position: 'top',
+          topOffset: 60,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error completing request:', error);
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Failed to complete request',
+        text2: error.message || 'Failed to complete request',
         position: 'top',
         topOffset: 60,
       });
@@ -126,7 +136,7 @@ export const ActiveRequestsScreen = () => {
    * Returns color code based on request priority
    * @param priority - Priority level of the request
    */
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: RequestResponse['priority']) => {
     switch (priority) {
       case 'critical': return '#FF0000';
       case 'high': return '#FF6B6B';
@@ -144,7 +154,7 @@ export const ActiveRequestsScreen = () => {
       }
     >
       {requests.map((request) => (
-        <Card key={request.id} style={styles.card}>
+        <Card key={request._id} style={styles.card}>
           <Card.Content>
             <View style={styles.headerRow}>
               <Title>{request.fullName}</Title>
@@ -164,9 +174,10 @@ export const ActiveRequestsScreen = () => {
           <Card.Actions>
             <Button 
               mode="contained" 
-              onPress={() => handleComplete(request.id)}
+              onPress={() => handleComplete(request._id)}
+              disabled={request.status === 'completed'}
             >
-              Mark as Completed
+              {request.status === 'completed' ? 'Completed' : 'Mark as Completed'}
             </Button>
           </Card.Actions>
         </Card>

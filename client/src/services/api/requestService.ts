@@ -1,6 +1,7 @@
 import { API_URL } from '../../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { RequestResponse } from '@/types/api';
 
 class RequestService {
   private async getHeaders() {
@@ -40,21 +41,36 @@ class RequestService {
   }
 
   async updateRequestStatus(requestId: string, status: string) {
-    const headers = await this.getHeaders();
-    return axios.patch(
-      `${API_URL}/api/requests/${requestId}/status`,
-      { status },
-      { headers }
-    );
+    try {
+      const headers = await this.getHeaders();
+      const response = await axios.put(
+        `${API_URL}/api/requests/${requestId}/status`,
+        { status },
+        { headers }
+      );
+      return {
+        success: true,
+        data: response.data.data as RequestResponse
+      };
+    } catch (error: any) {
+      console.error('Error updating request status:', error);
+      throw new Error(error.response?.data?.message || 'Failed to update request status');
+    }
   }
 
   async assignRequest(requestId: string, nurseId: string) {
-    const headers = await this.getHeaders();
-    return axios.patch(
-      `${API_URL}/api/requests/${requestId}/assign`,
-      { nurseId },
-      { headers }
-    );
+    try {
+      const headers = await this.getHeaders();
+      const response = await axios.put(
+        `${API_URL}/api/requests/${requestId}/assign`,
+        { nurseId },
+        { headers }
+      );
+      return response;
+    } catch (error: any) {
+      console.error('Error assigning request:', error);
+      throw new Error(error.response?.data?.message || 'Failed to assign request');
+    }
   }
 }
 

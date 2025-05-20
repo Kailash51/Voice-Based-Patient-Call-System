@@ -74,13 +74,7 @@ export const PatientDashboard: React.FC = () => {
       screen: 'AppointmentScreen',
       gradient: ['#FF6B6B', '#FF8E8E'] as const,
     },
-    {
-      title: 'My Profile',
-      description: 'View and update your profile',
-      icon: 'account-circle',
-      screen: 'PatientProfileScreen',
-      gradient: ['#4ECDC4', '#45B7AF'] as const,
-    },
+    
     {
       title: 'Medical Records',
       description: 'Access your medical history',
@@ -95,6 +89,14 @@ export const PatientDashboard: React.FC = () => {
       screen: 'MedicationsScreen',
       gradient: ['#FFD93D', '#F4C430'] as const,
     },
+    
+    {
+      title: 'My Requests',
+      description: 'View your nurse requests',
+      icon: 'history',
+      screen: 'MyRequestsScreen',
+      gradient: ['#A8E6CF', '#7DBE9B'] as const,
+    },
     {
       title: 'Emergency',
       description: 'Quick access to emergency services',
@@ -103,11 +105,11 @@ export const PatientDashboard: React.FC = () => {
       gradient: ['#FF416C', '#FF4B2B'] as const,
     },
     {
-      title: 'My Requests',
-      description: 'View your nurse requests',
-      icon: 'history',
-      screen: 'MyRequestsScreen',
-      gradient: ['#A8E6CF', '#7DBE9B'] as const,
+      title: 'My Profile',
+      description: 'View and update your profile',
+      icon: 'account-circle',
+      screen: 'PatientProfileScreen',
+      gradient: ['#4ECDC4', '#45B7AF'] as const,
     },
   ] as const;
 

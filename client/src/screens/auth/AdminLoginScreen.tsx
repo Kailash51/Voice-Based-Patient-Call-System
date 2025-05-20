@@ -10,6 +10,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'reac
 import { useAuth } from '@/contexts/AuthContext';
 import type { NavigationProp } from '@/types/navigation';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export const AdminLoginScreen = () => {
   // Navigation hook for screen transitions
@@ -18,6 +19,7 @@ export const AdminLoginScreen = () => {
   // State management for form inputs
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   // Auth context hook for login functionality
   const { login } = useAuth();
@@ -34,6 +36,11 @@ export const AdminLoginScreen = () => {
       // Handle error (show error message)
       console.error(error);
     }
+  };
+
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -57,13 +64,26 @@ export const AdminLoginScreen = () => {
       />
       
       {/* Password input field with secure entry */}
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+        />
+        <TouchableOpacity 
+          style={styles.eyeIcon}
+          onPress={togglePasswordVisibility}
+          activeOpacity={0.7}
+        >
+          <Icon 
+            name={showPassword ? 'eye' : 'eye-off'} 
+            size={24} 
+            color="#666"
+          />
+        </TouchableOpacity>
+      </View>
       
       {/* Login submission button */}
       <TouchableOpacity 
@@ -103,6 +123,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 15,
+  },
+  passwordContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  passwordInput: {
+    flex: 1,
+    height: 50,
+    paddingHorizontal: 15,
+  },
+  eyeIcon: {
+    padding: 10,
   },
   loginButton: {
     width: '100%',

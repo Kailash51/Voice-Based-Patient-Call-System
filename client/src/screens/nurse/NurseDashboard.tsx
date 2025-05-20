@@ -208,7 +208,7 @@ export const NurseDashboard = () => {
         </View>
       </LinearGradient>
 
-      <View style={styles.statsContainer}>
+      {/* <View style={styles.statsContainer}>
         <Text style={styles.sectionTitle}>Today's Overview</Text>
         <View style={styles.statsGrid}>
           <LinearGradient
@@ -244,7 +244,7 @@ export const NurseDashboard = () => {
             <Text style={styles.statLabel}>Completed Tasks</Text>
           </LinearGradient>
         </View>
-      </View>
+      </View> */}
 
       <View style={styles.menuContainer}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -254,6 +254,8 @@ export const NurseDashboard = () => {
             { name: 'Active Requests', icon: 'notifications-active', route: 'ActiveRequests', colors: ['#FF7043', '#E64A19'] },
             { name: 'Completed Tasks', icon: 'check-circle', route: 'CompletedTasks', colors: ['#FFD700', '#DAA520'] },
             { name: 'My Schedule', icon: 'schedule', route: 'Schedule', colors: ['#7CB342', '#558B2F'] },
+            { name: 'Reference Book', icon: 'book', route: 'Reference', colors: ['#00C078', '#008040'] },
+            { name: 'Connect Doctors', icon: 'local-hospital', route: 'DoctorConnect', colors: ['#90C0C0', '#90C0C0'] },
             { name: 'My Profile', icon: 'person', route: 'NurseProfile', colors: ['#5C6BC0', '#3949AB'] },
           ].map((item, index) => (
             <TouchableOpacity

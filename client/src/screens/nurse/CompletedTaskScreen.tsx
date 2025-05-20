@@ -16,31 +16,32 @@ import {
   Title,
   Paragraph,
   Text,
+  Button,
 } from 'react-native-paper';
-import { requestApi } from '@/services/api'; // Importing the API service for fetching requests
-import Toast from 'react-native-toast-message'; // Importing Toast for displaying messages
-import { RequestResponse } from '@/types/api'; // Importing the RequestResponse type for type safety
-import { socket } from '@/services/socketService'; // Importing socket service for real-time updates
-import { useFocusEffect } from '@react-navigation/native'; // Hook to run effects when the screen is focused
+import { requestService } from '@/services/api/requestService';
+import Toast from 'react-native-toast-message';
+import { RequestResponse } from '@/types/api';
+import { socket } from '@/services/socketService';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const CompletedTaskScreen = () => {
-  // State for storing completed requests and refresh indicator
-  const [completedRequests, setCompletedRequests] = useState<RequestResponse[]>([]); // State to hold completed requests
-  const [refreshing, setRefreshing] = useState(false); // State to manage the refreshing indicator
+  const [completedRequests, setCompletedRequests] = useState<RequestResponse[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
-  /**
-   * Fetches completed requests from the API
-   * Filters requests with 'completed' status
-   */
   const fetchCompletedRequests = async () => {
     try {
-      const response = await requestApi.getRequests(); // Fetching requests from the API
+      const response = await requestService.getRequests();
       const completed = response.data.requests.filter(
-        req => req.status === 'completed' // Filtering requests to get only completed ones
+        (req: RequestResponse) => req.status === 'completed'
       );
-      setCompletedRequests(completed); // Updating state with completed requests
+      // Sort by completion time, most recent first
+      const sortedCompleted = completed.sort((a: RequestResponse, b: RequestResponse) => 
+        new Date(b.completedAt || b.createdAt).getTime() - 
+        new Date(a.completedAt || a.createdAt).getTime()
+      );
+      setCompletedRequests(sortedCompleted);
     } catch (error) {
-      // Handling errors during the fetch
+      console.error('Error fetching completed requests:', error);
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -51,34 +52,34 @@ export const CompletedTaskScreen = () => {
     }
   };
 
-  /**
-   * Handles pull-to-refresh functionality
-   * Shows refresh indicator while fetching new data
-   */
   const onRefresh = React.useCallback(() => {
-    setRefreshing(true); // Setting refreshing state to true
-    fetchCompletedRequests().finally(() => setRefreshing(false)); // Fetching completed requests and resetting refreshing state
+    setRefreshing(true);
+    fetchCompletedRequests().finally(() => setRefreshing(false));
   }, []);
 
-  /**
-   * Effect hook that runs when screen comes into focus
-   * Sets up socket listener for real-time updates of completed requests
-   */
   useFocusEffect(
     React.useCallback(() => {
-      fetchCompletedRequests(); // Fetch completed requests when the screen is focused
+      fetchCompletedRequests();
 
-      // Socket handler for newly completed requests
       const handleRequestCompleted = (request: RequestResponse) => {
-        setCompletedRequests(prev => [request, ...prev]); // Adding newly completed request to the state
+        if (request.status === 'completed') {
+          setCompletedRequests(prev => {
+            // Check if request already exists
+            const exists = prev.some(req => req._id === request._id);
+            if (!exists) {
+              return [request, ...prev];
+            }
+            return prev;
+          });
+        }
       };
 
-      // Subscribe to socket events
-      socket.on('requestCompleted', handleRequestCompleted); // Listening for completed request events
+      socket.on('requestCompleted', handleRequestCompleted);
+      socket.on('request_status_updated', handleRequestCompleted);
 
-      // Cleanup socket subscription on unmount
       return () => {
-        socket.off('requestCompleted', handleRequestCompleted); // Unsubscribing from the event
+        socket.off('requestCompleted', handleRequestCompleted);
+        socket.off('request_status_updated', handleRequestCompleted);
       };
     }, [])
   );
@@ -87,46 +88,76 @@ export const CompletedTaskScreen = () => {
     <View style={styles.container}>
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> // Adding pull-to-refresh functionality
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
         {completedRequests.length === 0 ? (
-          <Text style={styles.emptyText}>No completed requests</Text> // Message when there are no completed requests
+          <Text style={styles.emptyText}>No completed requests</Text>
         ) : (
           completedRequests.map((request) => (
-            <Card key={request.id} style={styles.card}> // Rendering each completed request in a card
+            <Card key={request._id} style={styles.card}>
               <Card.Content>
-                <Title>{request.fullName}</Title> // Displaying patient's full name
-                <Paragraph>Room: {request.roomNumber}</Paragraph> // Displaying room number
-                <Paragraph>Disease: {request.disease}</Paragraph> // Displaying disease information
-                <Text>Completed at: {new Date(request.completedAt).toLocaleString()}</Text> // Displaying completion time
+                <View style={styles.headerRow}>
+                  <Title>{request.fullName}</Title>
+                  <Text style={styles.completedBadge}>Completed</Text>
+                </View>
+                <Paragraph>Room: {request.roomNumber}</Paragraph>
+                <Paragraph>Disease: {request.disease}</Paragraph>
+                <Paragraph>Description: {request.description}</Paragraph>
+                <Text style={styles.completionTime}>
+                  Completed at: {new Date(request.completedAt || request.createdAt).toLocaleString()}
+                </Text>
               </Card.Content>
+              <Card.Actions>
+                <Button mode="contained" disabled>
+                  Completed
+                </Button>
+              </Card.Actions>
             </Card>
           ))
         )}
       </ScrollView>
-      <Toast position="top" topOffset={60} /> // Toast for displaying messages
+      <Toast position="top" topOffset={60} />
     </View>
   );
 };
 
-/**
- * Component styles
- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f5f5f5', // Background color for the container
+    backgroundColor: '#f5f5f5',
   },
   card: {
     marginBottom: 16,
-    elevation: 4, // Elevation for shadow effect on cards
+    elevation: 4,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: 'white',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  completedBadge: {
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  completionTime: {
+    marginTop: 8,
+    color: '#666',
+    fontSize: 12,
   },
   emptyText: {
     textAlign: 'center',
     marginTop: 20,
     fontSize: 16,
-    color: '#666', // Color for the empty state text
+    color: '#666',
   },
 });

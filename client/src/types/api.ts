@@ -29,11 +29,22 @@ export interface NurseResponse extends Nurse {
 
 export interface RequestResponse {
   _id: string;
+  id: string;  // For backward compatibility
+  fullName: string;
+  roomNumber: string;
+  disease: string;
   description: string;
-  status: string;
-  priority: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  status: 'pending' | 'completed' | 'assigned' | 'in_progress' | 'cancelled';
   createdAt: string;
-  updatedAt: string;
+  completedAt?: string;
+}
+
+export interface RequestsResponse {
+  success: boolean;
+  data: {
+    requests: RequestResponse[];
+  };
 }
 
 export interface RequestFilters {

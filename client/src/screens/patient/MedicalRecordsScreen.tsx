@@ -5,6 +5,8 @@ import {
   ScrollView,
   StatusBar,
   TouchableOpacity,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import {
   Text,
@@ -23,6 +25,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { format } from 'date-fns';
+
+const { width, height } = Dimensions.get('window');
 
 interface MedicalRecord {
   id: string;
@@ -170,13 +174,15 @@ export const MedicalRecordsScreen: React.FC = () => {
             setSelectedRecord(record);
             setModalVisible(true);
           }}
+          activeOpacity={0.85}
         >
           <View style={styles.cardHeader}>
             <View style={styles.headerLeft}>
               <Icon
                 name={getRecordIcon(record.type)}
-                size={24}
+                size={28}
                 color={theme.colors.primary}
+                style={{ marginRight: 10 }}
               />
               <View style={styles.recordInfo}>
                 <Text style={styles.recordTitle}>{record.title}</Text>
@@ -185,8 +191,35 @@ export const MedicalRecordsScreen: React.FC = () => {
                 </Text>
               </View>
             </View>
-            <Chip mode="outlined">
-              {record.type}
+            <Chip
+              mode="flat"
+              style={[
+                styles.chip,
+                {
+                  backgroundColor:
+                    record.type === 'diagnosis'
+                      ? '#e3f2fd'
+                      : record.type === 'procedure'
+                      ? '#e8f5e9'
+                      : record.type === 'test'
+                      ? '#fff3e0'
+                      : '#fce4ec',
+                },
+              ]}
+              textStyle={{
+                color:
+                  record.type === 'diagnosis'
+                    ? '#1976d2'
+                    : record.type === 'procedure'
+                    ? '#388e3c'
+                    : record.type === 'test'
+                    ? '#f57c00'
+                    : '#c2185b',
+                fontWeight: 'bold',
+                fontSize: 13,
+              }}
+            >
+              {record.type.charAt(0).toUpperCase() + record.type.slice(1)}
             </Chip>
           </View>
 
@@ -195,7 +228,7 @@ export const MedicalRecordsScreen: React.FC = () => {
               {record.description}
             </Text>
             <View style={styles.doctorInfo}>
-              <Icon name="doctor" size={16} color="#666" />
+              <Icon name="doctor" size={18} color="#1976d2" />
               <Text style={styles.doctorText}>{record.doctor}</Text>
               <Text style={styles.departmentText}>• {record.department}</Text>
             </View>
@@ -203,7 +236,7 @@ export const MedicalRecordsScreen: React.FC = () => {
 
           {record.attachments && record.attachments.length > 0 && (
             <View style={styles.attachments}>
-              <Icon name="paperclip" size={16} color="#666" />
+              <Icon name="paperclip" size={16} color="#757575" />
               <Text style={styles.attachmentsText}>
                 {record.attachments.length} attachment{record.attachments.length !== 1 ? 's' : ''}
               </Text>
@@ -216,23 +249,23 @@ export const MedicalRecordsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#e3f2fd" />
       <LinearGradient
-        colors={['#2C6EAB', '#3b5998', '#192f6a']}
+        colors={['#1976d2', '#42a5f5', '#e3f2fd']}
         style={styles.header}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <BlurView intensity={20} style={styles.headerBlur}>
+        <BlurView intensity={30} style={styles.headerBlur}>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>Medical Records</Text>
-            <IconButton
+            {/* <IconButton
               icon="download"
-              iconColor="#fff"
-              size={24}
-              onPress={() => {/* Handle download all */}}
+              iconColor="#1976d2"
+              size={26}
+              onPress={() => {}}
               style={styles.headerButton}
-            />
+            /> */}
           </View>
           <Searchbar
             placeholder="Search records..."
@@ -240,11 +273,14 @@ export const MedicalRecordsScreen: React.FC = () => {
             value={searchQuery}
             style={styles.searchBar}
             inputStyle={styles.searchInput}
+            iconColor="#1976d2"
+            placeholderTextColor="#90caf9"
           />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.filtersContainer}
+            contentContainerStyle={{ paddingVertical: 4 }}
           >
             <SegmentedButtons
               value={selectedType}
@@ -269,7 +305,13 @@ export const MedicalRecordsScreen: React.FC = () => {
                 setTimeRange('all');
                 filterRecords(searchQuery, selectedType, 'all');
               }}
-              style={styles.timeRangeButton}
+              style={[
+                styles.timeRangeButton,
+                timeRange === 'all' && styles.timeRangeButtonActive,
+              ]}
+              labelStyle={timeRange === 'all' ? styles.timeRangeLabelActive : styles.timeRangeLabel}
+              buttonColor={timeRange === 'all' ? '#1976d2' : '#fff'}
+              textColor={timeRange === 'all' ? '#fff' : '#1976d2'}
             >
               All Time
             </Button>
@@ -279,7 +321,13 @@ export const MedicalRecordsScreen: React.FC = () => {
                 setTimeRange('3months');
                 filterRecords(searchQuery, selectedType, '3months');
               }}
-              style={styles.timeRangeButton}
+              style={[
+                styles.timeRangeButton,
+                timeRange === '3months' && styles.timeRangeButtonActive,
+              ]}
+              labelStyle={timeRange === '3months' ? styles.timeRangeLabelActive : styles.timeRangeLabel}
+              buttonColor={timeRange === '3months' ? '#1976d2' : '#fff'}
+              textColor={timeRange === '3months' ? '#fff' : '#1976d2'}
             >
               3 Months
             </Button>
@@ -289,7 +337,13 @@ export const MedicalRecordsScreen: React.FC = () => {
                 setTimeRange('6months');
                 filterRecords(searchQuery, selectedType, '6months');
               }}
-              style={styles.timeRangeButton}
+              style={[
+                styles.timeRangeButton,
+                timeRange === '6months' && styles.timeRangeButtonActive,
+              ]}
+              labelStyle={timeRange === '6months' ? styles.timeRangeLabelActive : styles.timeRangeLabel}
+              buttonColor={timeRange === '6months' ? '#1976d2' : '#fff'}
+              textColor={timeRange === '6months' ? '#fff' : '#1976d2'}
             >
               6 Months
             </Button>
@@ -299,7 +353,13 @@ export const MedicalRecordsScreen: React.FC = () => {
                 setTimeRange('1year');
                 filterRecords(searchQuery, selectedType, '1year');
               }}
-              style={styles.timeRangeButton}
+              style={[
+                styles.timeRangeButton,
+                timeRange === '1year' && styles.timeRangeButtonActive,
+              ]}
+              labelStyle={timeRange === '1year' ? styles.timeRangeLabelActive : styles.timeRangeLabel}
+              buttonColor={timeRange === '1year' ? '#1976d2' : '#fff'}
+              textColor={timeRange === '1year' ? '#fff' : '#1976d2'}
             >
               1 Year
             </Button>
@@ -307,23 +367,37 @@ export const MedicalRecordsScreen: React.FC = () => {
         </BlurView>
       </LinearGradient>
 
-      <ScrollView style={styles.content}>
-        {filteredRecords.map(renderRecord)}
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 32 }}>
+        {filteredRecords.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Icon name="file-document-outline" size={60} color="#bdbdbd" />
+            <Text style={styles.emptyText}>No records found</Text>
+          </View>
+        ) : (
+          filteredRecords.map(renderRecord)
+        )}
       </ScrollView>
 
       <Modal
         visible={modalVisible}
         onDismiss={() => setModalVisible(false)}
         contentContainerStyle={styles.modalContent}
+        dismissable
       >
         {selectedRecord && (
-          <ScrollView>
+          <ScrollView
+            style={{ maxHeight: height * 0.8, minHeight: 200 }}
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{selectedRecord.title}</Text>
               <IconButton
                 icon="close"
-                size={24}
+                size={26}
                 onPress={() => setModalVisible(false)}
+                iconColor="#1976d2"
+                style={{ marginLeft: 8 }}
               />
             </View>
 
@@ -332,18 +406,24 @@ export const MedicalRecordsScreen: React.FC = () => {
                 <List.Section>
                   <List.Item
                     title="Date"
+                    titleStyle={styles.listTitle}
                     description={format(new Date(selectedRecord.date), 'MMMM dd, yyyy')}
-                    left={props => <List.Icon {...props} icon="calendar" />}
+                    descriptionStyle={styles.listDescription}
+                    left={props => <List.Icon {...props} icon="calendar" color="#1976d2" />}
                   />
                   <List.Item
                     title="Doctor"
+                    titleStyle={styles.listTitle}
                     description={selectedRecord.doctor}
-                    left={props => <List.Icon {...props} icon="doctor" />}
+                    descriptionStyle={styles.listDescription}
+                    left={props => <List.Icon {...props} icon="doctor" color="#1976d2" />}
                   />
                   <List.Item
                     title="Department"
+                    titleStyle={styles.listTitle}
                     description={selectedRecord.department}
-                    left={props => <List.Icon {...props} icon="hospital-building" />}
+                    descriptionStyle={styles.listDescription}
+                    left={props => <List.Icon {...props} icon="hospital-building" color="#1976d2" />}
                   />
                 </List.Section>
 
@@ -387,7 +467,7 @@ export const MedicalRecordsScreen: React.FC = () => {
                       <Text style={styles.sectionTitle}>Follow-up</Text>
                       <Surface style={styles.followUpCard}>
                         <View style={styles.followUpHeader}>
-                          <Icon name="calendar-clock" size={20} color={theme.colors.primary} />
+                          <Icon name="calendar-clock" size={20} color="#1976d2" />
                           <Text style={styles.followUpDate}>
                             {format(new Date(selectedRecord.followUp.date), 'MMMM dd, yyyy')}
                           </Text>
@@ -411,7 +491,7 @@ export const MedicalRecordsScreen: React.FC = () => {
                             <Icon
                               name={attachment.type.includes('image') ? 'image' : 'file-document'}
                               size={24}
-                              color={theme.colors.primary}
+                              color="#1976d2"
                             />
                             <Text style={styles.attachmentName}>{attachment.name}</Text>
                           </View>
@@ -419,6 +499,7 @@ export const MedicalRecordsScreen: React.FC = () => {
                             icon="download"
                             size={20}
                             onPress={() => {/* Handle download */}}
+                            iconColor="#1976d2"
                           />
                         </Surface>
                       ))}
@@ -433,6 +514,9 @@ export const MedicalRecordsScreen: React.FC = () => {
                   onPress={() => {/* Handle share */}}
                   style={styles.actionButton}
                   icon="share-variant"
+                  buttonColor="#1976d2"
+                  textColor="#fff"
+                  labelStyle={{ fontWeight: 'bold' }}
                 >
                   Share Record
                 </Button>
@@ -441,6 +525,9 @@ export const MedicalRecordsScreen: React.FC = () => {
                   onPress={() => {/* Handle download */}}
                   style={styles.actionButton}
                   icon="download"
+                  buttonColor="#42a5f5"
+                  textColor="#fff"
+                  labelStyle={{ fontWeight: 'bold' }}
                 >
                   Download
                 </Button>
@@ -456,67 +543,118 @@ export const MedicalRecordsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f4f8fb',
   },
   header: {
-    paddingTop: 1,
-    paddingBottom: 7,
+    paddingTop: Platform.OS === 'ios' ? 48 : 24,
+    paddingBottom: 0,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
+    elevation: 4,
   },
   headerBlur: {
-    padding: 16,
+    padding: 18,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#1976d2',
+    textShadowColor: 'rgba(25, 118, 210, 0.08)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    letterSpacing: 0.5,
   },
   headerButton: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#e3f2fd',
+    borderRadius: 50,
+    elevation: 0,
   },
   searchBar: {
-    marginBottom: 12,
-    elevation: 0,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    marginBottom: 10,
+    elevation: 2,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#bbdefb',
   },
   searchInput: {
     fontSize: 16,
+    color: '#1976d2',
+    fontWeight: '500',
   },
   filtersContainer: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   segmentedButtons: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(25, 118, 210, 0.07)',
+    borderRadius: 12,
+    marginHorizontal: 0,
+    minWidth: width - 32,
   },
   timeRangeContainer: {
     flexDirection: 'row',
     gap: 8,
+    marginTop: 4,
+    marginBottom: 2,
   },
   timeRangeButton: {
     flex: 1,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#1976d2',
+    marginHorizontal: 2,
+    elevation: 0,
+  },
+  timeRangeButtonActive: {
+    borderColor: '#1976d2',
+    elevation: 2,
+  },
+  timeRangeLabel: {
+    color: '#1976d2',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  timeRangeLabelActive: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 13,
   },
   content: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#f4f8fb',
   },
   recordCard: {
-    borderRadius: 12,
-    marginBottom: 16,
+    borderRadius: 16,
+    marginBottom: 18,
     overflow: 'hidden',
-    elevation: 2,
+    elevation: 4,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e3f2fd',
+    shadowColor: '#1976d2',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 4,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 18,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#e3f2fd',
+    backgroundColor: '#f7fbff',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -527,101 +665,150 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   recordTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: 'bold',
+    color: '#1976d2',
+    marginBottom: 2,
   },
   recordDate: {
     fontSize: 14,
-    color: '#666',
+    color: '#90caf9',
+    fontWeight: '500',
+  },
+  chip: {
+    borderRadius: 8,
+    paddingHorizontal: 0,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0,
+    elevation: 0,
   },
   cardContent: {
-    padding: 16,
+    padding: 18,
+    paddingTop: 10,
+    backgroundColor: '#fff',
   },
   description: {
     fontSize: 16,
-    marginBottom: 12,
+    marginBottom: 10,
+    color: '#263238',
+    lineHeight: 22,
+    fontWeight: '500',
   },
   doctorInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginTop: 2,
   },
   doctorText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 15,
+    color: '#1976d2',
+    fontWeight: 'bold',
   },
   departmentText: {
     fontSize: 14,
-    color: '#666',
+    color: '#607d8b',
+    fontWeight: '500',
   },
   attachments: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     paddingBottom: 12,
+    backgroundColor: '#f7fbff',
   },
   attachmentsText: {
     fontSize: 14,
-    color: '#666',
+    color: '#757575',
+    fontWeight: '500',
   },
   modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    margin: 20,
-    borderRadius: 8,
+    backgroundColor: '#fff',
+    marginHorizontal: 0,
+    marginVertical: 0,
+    borderRadius: 20,
+    maxHeight: height * 0.85,
+    minHeight: 200,
+    width: width - 24,
+    alignSelf: 'center',
+    elevation: 8,
+    shadowColor: '#1976d2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    padding: 0,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#e3f2fd',
+    backgroundColor: '#f7fbff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   modalTitle: {
-    fontSize: 24,
+    fontSize: 25,
     fontWeight: 'bold',
+    color: '#1976d2',
+    flex: 1,
+    marginRight: 8,
+    letterSpacing: 0.2,
   },
   modalBody: {
-    padding: 20,
+    padding: 18,
+    backgroundColor: '#fff',
   },
   detailsCard: {
-    padding: 16,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 14,
     marginBottom: 16,
-    elevation: 2,
+    elevation: 1,
+    backgroundColor: '#f7fbff',
+    borderWidth: 1,
+    borderColor: '#e3f2fd',
   },
   divider: {
-    marginVertical: 16,
+    marginVertical: 14,
+    backgroundColor: '#e3f2fd',
+    height: 1,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 10,
+    color: '#1976d2',
+    letterSpacing: 0.1,
   },
   descriptionSection: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   descriptionText: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#333',
+    color: '#263238',
+    fontWeight: '500',
   },
   resultsSection: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   resultItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 7,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#e3f2fd',
   },
   resultKey: {
     fontSize: 16,
-    color: '#333',
+    color: '#1976d2',
+    fontWeight: 'bold',
   },
   resultValue: {
     alignItems: 'flex-end',
@@ -629,46 +816,53 @@ const styles = StyleSheet.create({
   valueText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#263238',
   },
   normalRange: {
     fontSize: 12,
-    color: '#666',
+    color: '#607d8b',
+    fontWeight: '500',
   },
   followUpSection: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   followUpCard: {
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+    padding: 14,
+    borderRadius: 10,
+    backgroundColor: '#e3f2fd',
+    borderWidth: 1,
+    borderColor: '#bbdefb',
   },
   followUpHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   followUpDate: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1976d2',
   },
   followUpInstructions: {
     fontSize: 14,
-    color: '#666',
+    color: '#263238',
     lineHeight: 20,
+    fontWeight: '500',
   },
   attachmentsSection: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   attachmentItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
     marginBottom: 8,
+    backgroundColor: '#f7fbff',
+    borderWidth: 1,
+    borderColor: '#e3f2fd',
   },
   attachmentInfo: {
     flexDirection: 'row',
@@ -677,14 +871,45 @@ const styles = StyleSheet.create({
   },
   attachmentName: {
     fontSize: 16,
-    color: '#333',
+    color: '#1976d2',
+    fontWeight: 'bold',
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 16,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e3f2fd',
+    backgroundColor: '#f7fbff',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   actionButton: {
     flex: 1,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    elevation: 0,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 60,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#bdbdbd',
+    marginTop: 10,
+    fontWeight: '500',
+  },
+  listTitle: {
+    color: '#1976d2',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  listDescription: {
+    color: '#263238',
+    fontWeight: '500',
+    fontSize: 15,
   },
 }); 

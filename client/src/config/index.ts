@@ -9,7 +9,7 @@
  */
 const getLocalIP = () => {
   if (__DEV__) {
-    return  "" // Update this to your actual IP for local development
+    return  '192.168.33.199'; // Update this to your actual IP for local development
   }
   return 'your-production-domain.com'; // Production domain
 };
